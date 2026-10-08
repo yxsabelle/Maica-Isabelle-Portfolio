@@ -817,28 +817,5 @@ html[data-theme="dark"] .ai-chat-header{ border-bottom-color: rgba(233, 172, 196
 </div>
 
 <script src="script.js"></script>
-<script>
-/* Elle's AI chat: open/close only. The Chatbase iframe stays loaded so the conversation isn't reset. */
-(function(){
-  var btn = document.getElementById('aiChatButton');
-  var win = document.getElementById('aiChatWindow');
-  var closeBtn = document.getElementById('aiChatClose');
-  if (!btn || !win) return;
-
-  function setOpen(open){
-    win.classList.toggle('active', open);
-    btn.classList.toggle('active', open);
-    btn.setAttribute('aria-expanded', String(open));
-    win.setAttribute('aria-hidden', String(!open));
-    btn.setAttribute('aria-label', open ? "Close Elle's AI assistant" : "Open Elle's AI assistant");
-  }
-
-  btn.addEventListener('click', function(){ setOpen(!win.classList.contains('active')); });
-  if (closeBtn) closeBtn.addEventListener('click', function(){ setOpen(false); });
-  document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape' && win.classList.contains('active')) setOpen(false);
-  });
-})();
-</script>
 </body>
 </html>
