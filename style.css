@@ -1288,32 +1288,96 @@ html[data-theme="dark"] .social-card:hover,
 html[data-theme="dark"] .project-card:hover{ box-shadow: var(--glow), var(--shadow); }
 
 /* ---------- 15c. YXSA CHAT WIDGET ---------- */
+/* floating launcher: soft pink round icon that turns into a dark chevron when the chat is open */
 .chat-fab{
+  --chat-dot: var(--accent-soft);
   position: fixed;
   right: 24px;
   bottom: 24px;
   z-index: 150;
-  display: inline-flex;
+  width: 62px;
+  height: 62px;
+  padding: 0;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 13px 22px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  background: var(--accent-strong);
-  color: var(--white);
-  font-size: 0.95rem;
-  font-weight: 500;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--accent-strong) 20%, transparent);
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
   box-shadow: var(--shadow);
-  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, color 0.3s ease;
 }
-.chat-fab:hover{ transform: translateY(-3px); box-shadow: var(--glow), var(--shadow); background: var(--accent); }
-.chat-fab-icon{ font-size: 1.2rem; line-height: 1; }
-html[data-theme="dark"] .chat-fab{ color: var(--bg); box-shadow: var(--glow-soft), var(--shadow-soft); }
+.chat-fab:hover{
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: var(--glow), var(--shadow);
+}
+.chat-fab:active{ transform: scale(0.95); }
+.chat-fab.is-open{
+  background: var(--deep-text);
+  color: var(--white);
+  border-color: transparent;
+}
+
+.chat-fab-icon{
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  transition: opacity 0.25s ease, transform 0.3s ease;
+}
+.chat-fab-spark{ fill: var(--chat-dot); }
+.chat-fab-chat{ opacity: 1; transform: scale(1) rotate(0deg); }
+.chat-fab-x{ opacity: 0; transform: scale(0.5) rotate(-90deg); }
+.chat-fab.is-open .chat-fab-chat{ opacity: 0; transform: scale(0.5) rotate(90deg); }
+.chat-fab.is-open .chat-fab-x{ opacity: 1; transform: scale(1) rotate(0deg); }
+
+html[data-theme="dark"] .chat-fab{
+  --chat-dot: var(--accent-strong);
+  background: var(--accent-strong);
+  color: #2a1520;
+  border-color: transparent;
+  box-shadow: var(--glow), var(--shadow-soft);
+}
+html[data-theme="dark"] .chat-fab.is-open{
+  background: var(--surface);
+  color: var(--accent-strong);
+  border-color: var(--border-strong);
+}
+
+/* little greeting bubble that pops up beside the button */
+.chat-teaser{
+  position: fixed;
+  right: 100px;
+  bottom: 36px;
+  z-index: 149;
+  max-width: 220px;
+  padding: 11px 16px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-soft);
+  border-radius: 18px 18px 4px 18px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(10px) scale(0.95);
+  transform-origin: bottom right;
+  transition: opacity 0.35s ease, transform 0.35s ease, visibility 0s linear 0.35s;
+}
+.chat-teaser.show{
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0) scale(1);
+  transition: opacity 0.35s ease, transform 0.35s ease, visibility 0s;
+}
+html[data-theme="dark"] .chat-teaser{ box-shadow: var(--glow-soft), var(--shadow-soft); }
 
 .chat-panel{
   position: fixed;
   right: 24px;
-  bottom: 88px;
+  bottom: 102px;
   z-index: 160;
   width: min(390px, calc(100vw - 32px));
   height: min(640px, calc(100vh - 120px));
@@ -1379,13 +1443,14 @@ html[data-theme="dark"] .chat-panel{ box-shadow: var(--glow-soft), var(--shadow)
 .chat-panel-body iframe{ display: block; width: 100%; height: 100%; border: 0; }
 
 @media (max-width: 560px){
-  .chat-fab{ right: 14px; bottom: 14px; padding: 12px 18px; }
+  .chat-fab{ right: 14px; bottom: 14px; width: 56px; height: 56px; }
+  .chat-teaser{ right: 80px; bottom: 24px; max-width: 180px; font-size: 0.85rem; }
   .chat-panel{
     right: 12px;
     left: 12px;
-    bottom: 76px;
+    bottom: 82px;
     width: auto;
-    height: min(75vh, calc(100vh - 100px));
+    height: min(75vh, calc(100vh - 106px));
   }
 }
 
