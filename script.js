@@ -10,76 +10,55 @@
    8. Certification flip cards (tap-to-flip on touch devices)
    9. Footer year
    10. Scroll-progress ribbon
-   11. Ask Yxsa chat (Chatbase) open / close
+   11. Ask Yxsa chat open / close (Chatbase)
    ========================================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  /* ---------- small helpers: localStorage can throw (private mode, blocked cookies) ---------- */
-  const store = {
-    get(key) {
-      try { return localStorage.getItem(key); } catch (e) { return null; }
-    },
-    set(key, value) {
-      try { localStorage.setItem(key, value); } catch (e) { /* ignore */ }
-    }
-  };
-
   /* ---------- 1. THEME TOGGLE ---------- */
   const root = document.documentElement;
   const themeToggle = document.getElementById("themeToggle");
+  const savedTheme = localStorage.getItem("portfolio-theme");
 
   // Respect saved preference, otherwise default to light mode
-  if (store.get("portfolio-theme") === "dark") {
+  if (savedTheme === "dark") {
     root.setAttribute("data-theme", "dark");
   }
 
-  if (themeToggle) {
-    themeToggle.addEventListener("click", () => {
-      const isDark = root.getAttribute("data-theme") === "dark";
-      if (isDark) {
-        root.removeAttribute("data-theme");
-        store.set("portfolio-theme", "light");
-      } else {
-        root.setAttribute("data-theme", "dark");
-        store.set("portfolio-theme", "dark");
-      }
-    });
-  }
+  themeToggle.addEventListener("click", () => {
+    const isDark = root.getAttribute("data-theme") === "dark";
+    if (isDark) {
+      root.removeAttribute("data-theme");
+      localStorage.setItem("portfolio-theme", "light");
+    } else {
+      root.setAttribute("data-theme", "dark");
+      localStorage.setItem("portfolio-theme", "dark");
+    }
+  });
 
   /* ---------- 2. STICKY HEADER SHADOW ---------- */
   const header = document.getElementById("siteHeader");
-  if (header) {
-    const onScrollHeader = () => {
-      header.classList.toggle("scrolled", window.scrollY > 20);
-    };
-    window.addEventListener("scroll", onScrollHeader, { passive: true });
-    onScrollHeader();
-  }
+  const onScrollHeader = () => {
+    header.classList.toggle("scrolled", window.scrollY > 20);
+  };
+  window.addEventListener("scroll", onScrollHeader, { passive: true });
+  onScrollHeader();
 
   /* ---------- 3. MOBILE HAMBURGER MENU ---------- */
   const hamburger = document.getElementById("hamburger");
   const mobileNav = document.getElementById("mobileNav");
 
   const closeMobileNav = () => {
-    if (!hamburger || !mobileNav) return;
     hamburger.classList.remove("open");
     hamburger.setAttribute("aria-expanded", "false");
     mobileNav.classList.remove("open");
   };
 
-  if (hamburger && mobileNav) {
-    hamburger.addEventListener("click", () => {
-      const isOpen = mobileNav.classList.toggle("open");
-      hamburger.classList.toggle("open", isOpen);
-      hamburger.setAttribute("aria-expanded", String(isOpen));
-    });
-
-    // close the drawer when the window is resized up to desktop width
-    window.addEventListener("resize", () => {
-      if (window.innerWidth > 900) closeMobileNav();
-    });
-  }
+  hamburger.addEventListener("click", () => {
+    const isOpen = mobileNav.classList.toggle("open");
+    hamburger.classList.toggle("open", isOpen);
+    hamburger.setAttribute("aria-expanded", String(isOpen));
+  });
 
   /* ---------- 4. CLOSE MOBILE MENU ON LINK CLICK ---------- */
   document.querySelectorAll(".mobile-link").forEach(link => {
@@ -87,15 +66,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ---------- 5. ACTIVE NAV LINK WHILE SCROLLING ---------- */
+  const sections = document.querySelectorAll("main section[id], .hero[id]");
   const navLinks = document.querySelectorAll(".nav-link");
-  const navTargets = new Set(
-    Array.from(navLinks).map(link => link.getAttribute("href").replace("#", ""))
-  );
-
-  // only track sections that actually have a nav link, so scrolling through
-  // "Beyond the Screen" keeps Certifications highlighted instead of clearing the nav
-  const sections = Array.from(document.querySelectorAll("main section[id]"))
-    .filter(section => navTargets.has(section.id));
 
   const setActiveLink = () => {
     let currentId = "home";
@@ -114,7 +86,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.addEventListener("scroll", setActiveLink, { passive: true });
-  window.addEventListener("resize", setActiveLink);
   setActiveLink();
 
   /* ---------- 6. SCROLL REVEAL ANIMATIONS ---------- */
@@ -140,49 +111,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const cursorGlow = document.getElementById("cursorGlow");
   const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
 
-  if (cursorGlow) {
-    if (isTouchDevice) {
-      cursorGlow.style.display = "none";
-    } else {
-      // hidden until the mouse first moves, so it doesn't sit in the top-left corner on load
+  if (isTouchDevice) {
+    cursorGlow.style.display = "none";
+  } else {
+    let mouseX = 0, mouseY = 0;
+    let glowX = 0, glowY = 0;
+
+    window.addEventListener("mousemove", (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      cursorGlow.style.opacity = "1";
+    });
+
+    document.addEventListener("mouseleave", () => {
       cursorGlow.style.opacity = "0";
+    });
 
-      let mouseX = 0, mouseY = 0;
-      let glowX = 0, glowY = 0;
-      let hasMoved = false;
-      let rafId = null;
-
-      // Smoothly ease the glow toward the real cursor position (soft trail effect).
-      // The loop stops by itself once the glow catches up, so it isn't running forever.
-      const animateGlow = () => {
-        glowX += (mouseX - glowX) * 0.18;
-        glowY += (mouseY - glowY) * 0.18;
-        cursorGlow.style.transform = `translate(${glowX}px, ${glowY}px) translate(-50%, -50%)`;
-
-        if (Math.abs(mouseX - glowX) > 0.1 || Math.abs(mouseY - glowY) > 0.1) {
-          rafId = requestAnimationFrame(animateGlow);
-        } else {
-          rafId = null;
-        }
-      };
-
-      window.addEventListener("mousemove", (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        if (!hasMoved) {
-          // start right at the cursor instead of flying in from the corner
-          glowX = mouseX;
-          glowY = mouseY;
-          hasMoved = true;
-        }
-        cursorGlow.style.opacity = "1";
-        if (rafId === null) rafId = requestAnimationFrame(animateGlow);
-      });
-
-      document.addEventListener("mouseleave", () => {
-        cursorGlow.style.opacity = "0";
-      });
-    }
+    // Smoothly ease the glow toward the real cursor position (soft trail effect)
+    const animateGlow = () => {
+      glowX += (mouseX - glowX) * 0.18;
+      glowY += (mouseY - glowY) * 0.18;
+      cursorGlow.style.transform = `translate(${glowX}px, ${glowY}px) translate(-50%, -50%)`;
+      requestAnimationFrame(animateGlow);
+    };
+    animateGlow();
   }
 
   /* ---------- 8. CERTIFICATION FLIP CARDS (touch support) ---------- */
@@ -201,13 +153,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         // already flipped: let the click through so the certificate link opens
       });
-    });
-
-    // tapping anywhere outside a certificate card flips it back
-    document.addEventListener("click", (e) => {
-      if (!e.target.closest(".cert-flip")) {
-        certCards.forEach(c => c.classList.remove("is-flipped"));
-      }
     });
   }
 
@@ -250,8 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ---------- 9. FOOTER YEAR ---------- */
-  const yearEl = document.getElementById("year");
-  if (yearEl) yearEl.textContent = new Date().getFullYear();
+  document.getElementById("year").textContent = new Date().getFullYear();
 
   /* ---------- 10. SCROLL-PROGRESS RIBBON ---------- */
   const ribbonFill = document.getElementById("scrollRibbonFill");
@@ -267,8 +211,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ---------- 11. ASK YXSA CHAT (Chatbase) ---------- */
-  // Only opens and closes the window. The Chatbase iframe stays loaded the whole time,
-  // so the visitor's conversation isn't reset when they close the chat.
+  // Only opens and closes the chat window. The Chatbase iframe stays loaded,
+  // so the visitor's conversation isn't reset when the chat is closed.
   const aiButton = document.getElementById("aiChatButton");
   const aiWindow = document.getElementById("aiChatWindow");
   const aiClose = document.getElementById("aiChatClose");
@@ -290,16 +234,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (aiClose) {
-      aiClose.addEventListener("click", () => {
-        setChatOpen(false);
-        aiButton.focus();
-      });
+      aiClose.addEventListener("click", () => setChatOpen(false));
     }
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && aiWindow.classList.contains("active")) {
         setChatOpen(false);
-        aiButton.focus();
       }
     });
   }
