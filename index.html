@@ -1,48 +1,844 @@
-<!-- Floating AI Chat -->
-<div class="ai-chat-container">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maica Isabelle D. Dejumo — Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+/* ===== Elle's AI chat (self-contained so it works even if style.css is cached or outdated) ===== */
+.ai-chat-container{
+  position: fixed;
+  right: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  z-index: 9999;
+  font-family: var(--font-body, "Jost", "Helvetica Neue", sans-serif);
+}
 
-    <button
-        id="aiChatButton"
-        class="ai-chat-button"
-        type="button"
-        aria-label="Open Elle's AI assistant"
-        aria-expanded="false"
-    >
-        <span>✦</span>
-    </button>
+.ai-chat-button{
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(110, 51, 72, 0.22);
+  background: var(--accent-soft, #F3CBD9);
+  color: var(--accent-strong, #6E3348);
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(110, 51, 72, 0.22), 0 0 0 5px rgba(230, 166, 192, 0.22);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, color 0.3s ease;
+}
+.ai-chat-button:hover{
+  transform: scale(1.08) rotate(-6deg);
+  box-shadow: 0 12px 28px rgba(110, 51, 72, 0.28), 0 0 0 7px rgba(230, 166, 192, 0.3);
+}
+.ai-chat-button:active{ transform: scale(0.96); }
+.ai-chat-button:focus-visible{ outline: 2px solid var(--accent-strong, #6E3348); outline-offset: 4px; }
+.ai-chat-button.active{
+  background: var(--deep-text, #2C1B21);
+  color: #fff;
+  border-color: transparent;
+}
 
-    <div
-        id="aiChatWindow"
-        class="ai-chat-window"
-        aria-hidden="true"
-    >
-        <div class="ai-chat-header">
-            <div>
-                <strong>elle's ai ✦</strong>
-                <small>ask me anything about my portfolio</small>
-            </div>
+.ai-icon{
+  position: absolute;
+  width: 29px;
+  height: 29px;
+  transition: opacity 0.25s ease, transform 0.3s ease;
+}
+.ai-spark{
+  fill: var(--accent-soft, #F3CBD9);
+  transform-origin: 12px 10.5px;
+  animation: aiTwinkle 3.2s ease-in-out infinite;
+}
+@keyframes aiTwinkle{
+  0%, 100%{ transform: scale(1); }
+  50%{ transform: scale(1.18); }
+}
+.ai-icon-chat{ opacity: 1; transform: scale(1) rotate(0deg); }
+.ai-icon-close{ opacity: 0; transform: scale(0.5) rotate(-90deg); }
+.ai-chat-button.active .ai-icon-chat{ opacity: 0; transform: scale(0.5) rotate(90deg); }
+.ai-chat-button.active .ai-icon-close{ opacity: 1; transform: scale(1) rotate(0deg); }
 
-            <button
-                id="aiChatClose"
-                class="ai-chat-close"
-                type="button"
-                aria-label="Close AI assistant"
-            >
-                ×
-            </button>
-        </div>
+.ai-chat-window{
+  position: absolute;
+  right: 0;
+  bottom: 74px;
+  width: min(380px, calc(100vw - 32px));
+  height: min(620px, calc(100vh - 110px));
+  height: min(620px, calc(100dvh - 110px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface, #FFFCF8);
+  border: 1px solid rgba(110, 51, 72, 0.22);
+  border-radius: 24px;
+  box-shadow: 0 18px 44px rgba(110, 51, 72, 0.24);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(18px);
+  transform-origin: bottom right;
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s;
+}
+.ai-chat-window.active{
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s;
+}
 
-        <div class="ai-chat-content">
-            <iframe
-                src="https://www.chatbase.co/chatbot-iframe/BqIBfM-ix_T4n4dgczVK7"
-                width="100%"
-                height="100%"
-                frameborder="0"
-                referrerpolicy="no-referrer-when-downgrade"
-                allow="microphone"
-                title="Elle's AI Assistant"
-            ></iframe>
-        </div>
+.ai-chat-header{
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--accent-soft, #F3CBD9);
+  border-bottom: 1px solid rgba(110, 51, 72, 0.22);
+}
+.ai-chat-heading{ display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.ai-chat-title{
+  font-family: var(--font-display, "Cormorant Garamond", Georgia, serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent-strong, #6E3348);
+}
+.ai-chat-subtitle{
+  font-family: var(--font-display, "Cormorant Garamond", Georgia, serif);
+  font-style: italic;
+  font-size: 0.88rem;
+  color: var(--text-muted, #5c3742);
+}
+.ai-chat-close{
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 2px;
+  border-radius: 50%;
+  border: 1px solid rgba(110, 51, 72, 0.22);
+  background: var(--surface, #FFFCF8);
+  color: var(--accent-strong, #6E3348);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+.ai-chat-close:hover{ transform: rotate(90deg); background: var(--accent-soft, #F3CBD9); }
+
+.ai-chat-content{ flex: 1 1 auto; min-height: 0; background: #fff; overflow: hidden; }
+.ai-chat-content iframe{ display: block; width: 100%; height: 100%; border: 0; }
+
+html[data-theme="dark"] .ai-chat-button{
+  background: var(--accent-strong, #F6B8D4);
+  color: #2a1520;
+  box-shadow: 0 0 10px rgba(212, 113, 140, 0.55), 0 0 26px rgba(243, 196, 206, 0.35);
+}
+html[data-theme="dark"] .ai-spark{ fill: var(--accent-strong, #F6B8D4); }
+html[data-theme="dark"] .ai-chat-button.active{
+  background: var(--surface, #221621);
+  color: var(--accent-strong, #F6B8D4);
+  border-color: rgba(233, 172, 196, 0.45);
+}
+html[data-theme="dark"] .ai-chat-window{
+  border-color: rgba(233, 172, 196, 0.3);
+  box-shadow: 0 0 18px rgba(212, 113, 140, 0.3), 0 18px 44px rgba(0, 0, 0, 0.55);
+}
+html[data-theme="dark"] .ai-chat-header{ border-bottom-color: rgba(233, 172, 196, 0.3); }
+
+@media (max-width: 600px){
+  .ai-chat-container{
+    right: 12px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+  .ai-chat-button{ width: 56px; height: 56px; }
+  .ai-chat-window{
+    bottom: 68px;
+    width: calc(100vw - 24px);
+    height: calc(100vh - 110px);
+    height: calc(100dvh - 110px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .ai-spark{ animation: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- top scroll-progress ribbon -->
+<div class="scroll-ribbon" aria-hidden="true"><span id="scrollRibbonFill"></span></div>
+
+<!-- Soft floating decorative elements, purely cosmetic -->
+<div class="floaties" aria-hidden="true">
+  <span class="floaty f1">♡</span>
+  <span class="floaty f2">✦</span>
+  <span class="floaty f3">୨୧</span>
+  <span class="floaty f4">♡</span>
+  <span class="floaty f5">✦</span>
+</div>
+
+<!-- cursor glow element -->
+<div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+
+<!-- ============ HEADER / NAV ============ -->
+<header class="site-header" id="siteHeader">
+  <div class="header-inner">
+    <a href="#home" class="brand" aria-label="Isabelle">
+      <span class="brand-mono" aria-hidden="true">
+        <svg viewBox="0 0 40 40" width="30" height="30"><path d="M20 4c8.8 0 16 7.2 16 16s-7.2 16-16 16S4 28.8 4 20 11.2 4 20 4Z" fill="none" stroke="currentColor" stroke-width="1.1"/><text x="20" y="26" text-anchor="middle" font-family="'Cormorant Garamond', serif" font-size="17" font-style="italic" fill="currentColor">M</text></svg>
+      </span>
+      <span class="brand-name">ELLE</span><span class="brand-deco" aria-hidden="true"> . ۫ ꣑ৎ .</span>
+    </a>
+
+    <nav class="main-nav" id="mainNav">
+      <ul>
+        <li><a href="#home" class="nav-link active-link">Home</a></li>
+        <li><a href="#cv" class="nav-link">CV</a></li>
+        <li><a href="#about" class="nav-link">About</a></li>
+        <li><a href="#experience" class="nav-link">Experience</a></li>
+        <li><a href="#projects" class="nav-link">Projects</a></li>
+        <li><a href="#seminars" class="nav-link">Seminars</a></li>
+        <li><a href="#education" class="nav-link">Education</a></li>
+        <li><a href="#certifications" class="nav-link">Certifications</a></li>
+        <li><a href="#connect" class="nav-link">Contact</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <!-- theme toggle -->
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark / light mode">
+        <span class="toggle-icon sun">☀</span>
+        <span class="toggle-icon moon">☾</span>
+      </button>
+
+      <!-- hamburger for mobile -->
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- mobile nav drawer -->
+<div class="mobile-nav" id="mobileNav">
+  <ul>
+    <li><a href="#home" class="mobile-link">Home</a></li>
+    <li><a href="#cv" class="mobile-link">CV</a></li>
+    <li><a href="#about" class="mobile-link">About</a></li>
+    <li><a href="#experience" class="mobile-link">Experience</a></li>
+    <li><a href="#projects" class="mobile-link">Projects</a></li>
+    <li><a href="#seminars" class="mobile-link">Seminars</a></li>
+    <li><a href="#education" class="mobile-link">Education</a></li>
+    <li><a href="#certifications" class="mobile-link">Certifications</a></li>
+    <li><a href="#connect" class="mobile-link">Contact</a></li>
+  </ul>
+</div>
+
+<main>
+
+<!-- ============ HERO ============ -->
+<section id="home" class="hero">
+  <div class="hero-inner">
+    <div class="hero-text reveal">
+      <p class="hero-label"><span class="hero-label-line" aria-hidden="true"></span>Hi, I'm</p>
+      <h1 class="hero-name">Maica Isabelle<br>D. Dejumo</h1>
+      <p class="hero-tagline">Computer Science student · Manila, PH</p>
+      <p class="hero-intro">A Computer Science student with a passion for technology and problem-solving. I enjoy exploring ideas, developing creative solutions, and building digital projects that are useful, purposeful, and engaging.</p>
+
+      <ul class="hero-contact">
+        <li>
+          <span class="contact-icon">✉</span>
+          <a href="mailto:maykaisabelledln@gmail.com" class="contact-link">maykaisabelledln@gmail.com</a>
+        </li>
+        <li>
+          <span class="contact-icon">☎</span>
+          <a href="tel:+63 948 151 3590" class="contact-link">+63 948 151 3590</a>
+        </li>
+        <li>
+          <span class="contact-icon">⚲</span>
+          <span class="contact-text">Onyx St, San Andres Bukid Manila</span>
+        </li>
+      </ul>
+
+      <div class="hero-buttons">
+        <a href="elle cv/cv.pdf" target="_blank" rel="noopener" class="btn btn-primary">View My CV</a>
+        <a href="#experience" class="btn btn-outline">View Experience</a>
+      </div>
     </div>
 
+    <div class="hero-photo reveal">
+      <div class="profile-card" id="profileCard">
+        <!-- Fan photos — tucked behind the main photo, revealed on ribbon click -->
+        <div class="fan-photo fan-left">
+          <img src="elle pic/sabel pic 2.png" alt="" class="fan-img" onerror="this.style.display='none'; this.parentElement.classList.add('photo-empty');">
+          <span class="photo-placeholder-text">photo 2 here</span>
+        </div>
+        <div class="fan-photo fan-right">
+          <img src="elle pic/sabel pic 3.png" alt="" class="fan-img" onerror="this.style.display='none'; this.parentElement.classList.add('photo-empty');">
+          <span class="photo-placeholder-text">photo 3 here</span>
+        </div>
+
+        <div class="profile-photo-wrap">
+          <img src="elle pic/sabel pic 1.png" alt="Maica Isabelle D. Dejumo" class="profile-photo" onerror="this.style.display='none'; this.parentElement.classList.add('photo-empty');">
+          <span class="photo-placeholder-text">your photo here</span>
+        </div>
+        <button type="button" class="card-bow" id="fanToggle" aria-label="Open photo fan" aria-pressed="false">🎀</button>
+        <span class="card-sparkle sp1" aria-hidden="true">✦</span>
+        <span class="card-sparkle sp2" aria-hidden="true">✧</span>
+      </div>
+    </div>
+  </div>
+
+  <a href="#cv" class="scroll-cue" aria-label="Scroll down">
+    <span></span>
+  </a>
+</section>
+
+<!-- ============ CV ============ -->
+<section id="cv" class="section cv-section">
+  <div class="section-inner">
+    <p class="section-eyebrow">my resume</p>
+    <h2 class="section-title">Curriculum Vitae</h2>
+    <div class="cv-card reveal">
+      <span class="cv-seal" aria-hidden="true">✦</span>
+      <p class="cv-text">Want to get to know my journey a little better?</p>
+      <a href="elle cv/cv.pdf" target="_blank" rel="noopener" class="btn btn-primary btn-large">Download My CV ⇩</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section id="about" class="section about-section">
+  <div class="section-inner">
+    <p class="section-eyebrow">get to know me</p>
+    <h2 class="section-title">About Me</h2>
+
+    <div class="about-frame reveal">
+      <svg class="about-corner" viewBox="0 0 48 24" aria-hidden="true">
+        <path d="M24 12 4 3v18Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+        <path d="M24 12 44 3v18Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+        <circle cx="24" cy="12" r="2.6" fill="currentColor"/>
+      </svg>
+
+      <div class="about-lede">
+        <p class="about-kicker">Short Biography</p>
+        <p class="about-bio">Elle is a dedicated student with an interest in technology, leadership, and continuous learning. Through her academic projects, organizational involvement, and work experiences, she has developed her communication, organizational, and problem-solving skills. She enjoys learning from new experiences and is always looking for opportunities to grow, improve her skills, and prepare for her future career.</p>
+      </div>
+
+      <div class="about-spine" aria-hidden="true">
+        <svg class="about-spine-line" viewBox="0 0 20 100" preserveAspectRatio="none">
+          <path d="M10 0 C 17 15, 3 25, 10 38 S 16 58, 10 72 S 4 88, 10 100" stroke="currentColor" stroke-width="1" fill="none"/>
+        </svg>
+        <span class="about-spine-knot">
+          <svg viewBox="0 0 48 24">
+            <path d="M24 12 4 3v18Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+            <path d="M24 12 44 3v18Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+            <circle cx="24" cy="12" r="2.6" fill="currentColor"/>
+          </svg>
+        </span>
+      </div>
+
+      <ul class="about-notes">
+        <li>
+          <span class="about-note-label">Things I Love To Do</span>
+          <p>Outside of academics, I enjoy doing makeup, watching movies, reading, and going shopping. These little things help me relax, recharge, and enjoy my free time.</p>
+        </li>
+        <li>
+          <span class="about-note-label">Currently Learning</span>
+          <p>Currently learning more about computers and expanding my knowledge in technology and computer science.</p>
+        </li>
+        <li>
+          <span class="about-note-label">Skills</span>
+          <div class="skill-tags">
+            <span class="skill-tag">Java</span>
+            <span class="skill-tag">JavaScript</span>
+            <span class="skill-tag">UI/UX</span>
+            <span class="skill-tag">Photography</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EXPERIENCE ============ -->
+<section id="experience" class="section experience-section">
+  <div class="section-inner">
+    <p class="section-eyebrow">what i've done</p>
+    <h2 class="section-title">Experience</h2>
+
+    <div class="experience-rows">
+
+      <!-- ===== Row 1: Work Experience ===== -->
+      <div class="experience-row reveal">
+        <h3 class="experience-row-title">Work Experience</h3>
+        <div class="experience-list">
+          <div class="experience-item">
+            <div class="experience-marker"></div>
+            <div class="experience-content">
+              <span class="experience-date">February 2026-July 2026</span>
+              <h4>Part-Time Barista</h4>
+              <p class="experience-org">Bo Cafe</p>
+              <p class="experience-desc">Take customer orders, prepare and serve coffee and other beverages, handle payments, and maintain a clean and welcoming café environment.</p>
+            </div>
+          </div>
+          <div class="experience-item">
+            <div class="experience-marker"></div>
+            <div class="experience-content">
+              <span class="experience-date">March 2024-April 2024</span>
+              <h4>Clinic-Work Immersion Trainee</h4>
+              <p class="experience-org">Lagman Diagnostic Center</p>
+              <p class="experience-desc">Organized and logged patient records, printed documents, and handled various paperwork and record-keeping tasks.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Row 2: Leadership Experience ===== -->
+      <div class="experience-row reveal">
+        <h3 class="experience-row-title">Leadership Experience</h3>
+        <div class="experience-list">
+          <div class="experience-item">
+            <div class="experience-marker"></div>
+            <div class="experience-content">
+              <span class="experience-date">A.Y 2025-2026</span>
+              <h4>Treasurer</h4>
+              <p class="experience-org">Society of Computing Technologists, PCU-Manila</p>
+              <p class="experience-desc">Managed the organization's finances, which included budgeting, expense tracking, and keeping accurate financial records. Prepared financial reports while ensuring transparency and proper documentation of all financial transactions.</p>
+            </div>
+          </div>
+          <div class="experience-item">
+            <div class="experience-marker"></div>
+            <div class="experience-content">
+              <span class="experience-date">A.Y 2024-2025</span>
+              <h4>Public Relations Officer</h4>
+              <p class="experience-org">Society of Computing Technologists, PCU-Manila</p>
+              <p class="experience-desc">Managed the organization's social media, created engaging content, promoted events, and shared updates to improve communication with members and the public.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROJECTS ============ -->
+<section id="projects" class="section projects-section">
+  <div class="section-inner">
+    <p class="section-eyebrow">my work</p>
+    <h2 class="section-title">Projects</h2>
+
+    <div class="projects-grid">
+      <article class="project-card reveal">
+        <div class="project-image">
+          <div class="project-carousel">
+            <img src="project/proj 1.png" alt="Object-Oriented Integrated Medical Equipment Tracking and Requisition System for Philippine General Hospital" class="carousel-img active" onerror="this.style.display='none'; this.closest('.project-image').classList.add('img-empty');">
+            <img src="project/proj 2.png" alt="Object-Oriented Integrated Medical Equipment Tracking and Requisition System for Philippine General Hospital" class="carousel-img">
+            <img src="project/proj 3.png" alt="Object-Oriented Integrated Medical Equipment Tracking and Requisition System for Philippine General Hospital" class="carousel-img">
+            <img src="project/proj 4.png" alt="Object-Oriented Integrated Medical Equipment Tracking and Requisition System for Philippine General Hospital" class="carousel-img">
+          </div>
+          <button type="button" class="carousel-btn prev" aria-label="Previous picture">‹</button>
+          <button type="button" class="carousel-btn next" aria-label="Next picture">›</button>
+          <div class="carousel-dots">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+        <div class="project-body">
+          <h3>Object-Oriented Integrated Medical Equipment Tracking and Requisition System for Philippine General Hospital</h3>
+          <p>The study developed a computerized system for tracking and requisitioning medical equipment in PGH. The system improves organization, reduces delays, and enhances operational efficiency while applying Object-Oriented Programming principles in its development.</p>
+          <p class="project-tools">Java and OOP</p>
+          <a href="project/project elle.pdf" target="_blank" rel="noopener" class="project-link">View project ↗</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SEMINARS ============ -->
+<section id="seminars" class="section seminars-section">
+  <div class="section-inner">
+    <p class="section-eyebrow">always learning</p>
+    <h2 class="section-title">Seminars &amp; Trainings</h2>
+
+    <div class="entry-list">
+      <div class="entry-card reveal">
+        <div class="entry-head">
+          <h3>Responsible Use of AI in Education: Its Influence on Student Growth and Character in a Future-Proof Digital World</h3>
+          <span class="entry-date">2026</span>
+        </div>
+        <p class="entry-org">College of Informatics, PCU-Manila</p>
+      </div>
+      <div class="entry-card reveal">
+        <div class="entry-head">
+          <h3>The culture Industry: Enlightenment as Mass Deception</h3>
+          <span class="entry-date">2025</span>
+        </div>
+        <p class="entry-org">A.Y 2025-2026 BSCS 2A Students, PCU-Manila</p>
+      </div>
+      <div class="entry-card reveal">
+        <div class="entry-head">
+          <h3>Building The Future: Real World Tour for IT and CS Students</h3>
+          <span class="entry-date">2025</span>
+        </div>
+        <p class="entry-org">SCITECH, PCU-Manila and JPCS, PCU-Manila</p>
+      </div>
+      <div class="entry-card reveal">
+        <div class="entry-head">
+          <h3>BootUp - Computer Science Skills Intensive</h3>
+          <span class="entry-date">2024</span>
+        </div>
+        <p class="entry-org">Society of Computing Technologists, PCU-Manila</p>
+      </div>
+      <div class="entry-card reveal">
+        <div class="entry-head">
+          <h3>Pre-immersion Conference</h3>
+          <span class="entry-date">2024</span>
+        </div>
+        <p class="entry-org">Concordia College Inc.</p>
+      </div>
+      <div class="entry-card reveal">
+        <div class="entry-head">
+          <h3>Research Congress</h3>
+          <span class="entry-date">2023</span>
+        </div>
+        <p class="entry-org">Concordia College Inc.</p>
+      </div>
+      <div class="entry-card reveal">
+        <div class="entry-head">
+          <h3>Green Revolution: Laudato Si</h3>
+          <span class="entry-date">2023</span>
+        </div>
+        <p class="entry-org">Concordia College Inc.</p>
+      </div>
+      <div class="entry-card reveal">
+        <div class="entry-head">
+          <h3>Data Privacy Awareness</h3>
+          <span class="entry-date">2022</span>
+        </div>
+        <p class="entry-org">Concordia College Inc.</p>
+      </div>
+      <div class="entry-card reveal">
+        <div class="entry-head">
+          <h3>Senior High School Online Seminar</h3>
+          <span class="entry-date">2022</span>
+        </div>
+        <p class="entry-org">Concordia College Inc.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EDUCATION ============ -->
+<section id="education" class="section education-section">
+  <div class="section-inner">
+    <p class="section-eyebrow">where i studied</p>
+    <h2 class="section-title">Education</h2>
+
+    <div class="entry-list">
+      <div class="entry-card reveal">
+        <div class="entry-head">
+          <h3>Philippine Christian University-Manila</h3>
+          <span class="entry-date">2024-Present</span>
+        </div>
+        <p class="entry-org">Bachelor of Science in Computer Science</p>
+        <p class="entry-desc">Tertiary Education | Dean's Lister</p>
+      </div>
+      <div class="entry-card reveal">
+        <div class="entry-head">
+          <h3>Concordia College Incorporated</h3>
+          <span class="entry-date">2022-2024</span>
+        </div>
+        <p class="entry-org">Science, Technology, Engineering, and Mathematics</p>
+        <p class="entry-desc">Senior High School</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CERTIFICATIONS ============ -->
+<section id="certifications" class="section certifications-section">
+  <div class="section-inner">
+    <p class="section-eyebrow">credentials</p>
+    <h2 class="section-title">Certifications</h2>
+
+    <div class="cert-grid">
+      <a href="elle cert/Use of AI.png" target="_blank" rel="noopener" class="cert-flip reveal">
+        <div class="cert-flip-inner">
+          <div class="cert-face cert-front">
+            <h3 class="cert-title">Responsible Use of AI in Education: Its Influence on Student Growth and Character in a Future-Proof Digital World</h3>
+            <p class="cert-org">2026</p>
+            <span class="cert-hint">hover to flip ✦</span>
+          </div>
+          <div class="cert-face cert-back">
+            <img src="elle cert/Use of AI.png" alt="[CERTIFICATION NAME 1] certificate" class="cert-image" onerror="this.style.display='none'; this.parentElement.classList.add('cert-img-empty');">
+            <span class="cert-date">2026</span>
+            <span class="cert-cta">View Certificate ↗</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="elle cert/Mass Deception.jpg" target="_blank" rel="noopener" class="cert-flip reveal">
+        <div class="cert-flip-inner">
+          <div class="cert-face cert-front">
+            <h3 class="cert-title">The culture Industry: Enlightenment as Mass Deception</h3>
+            <p class="cert-org">2025</p>
+            <span class="cert-hint">hover to flip ✦</span>
+          </div>
+          <div class="cert-face cert-back">
+            <img src="elle cert/Mass Deception.jpg" alt="[CERTIFICATION NAME 2] certificate" class="cert-image" onerror="this.style.display='none'; this.parentElement.classList.add('cert-img-empty');">
+            <span class="cert-date">2025</span>
+            <span class="cert-cta">View Certificate ↗</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="elle cert/Web3 Tech.jpg" target="_blank" rel="noopener" class="cert-flip reveal">
+        <div class="cert-flip-inner">
+          <div class="cert-face cert-front">
+            <h3 class="cert-title">Building The Future: Real World Tour for IT and CS Students Topic: Web3 Technology</h3>
+            <p class="cert-org">2025</p>
+            <span class="cert-hint">hover to flip ✦</span>
+          </div>
+          <div class="cert-face cert-back">
+            <img src="elle cert/Web3 Tech.jpg" alt="[CERTIFICATION NAME 3] certificate" class="cert-image" onerror="this.style.display='none'; this.parentElement.classList.add('cert-img-empty');">
+            <p class="cert-desc"></p>
+            <span class="cert-date">2025</span>
+            <span class="cert-cta">View Certificate ↗</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="elle cert/Freelancing in Tech.jpg" target="_blank" rel="noopener" class="cert-flip reveal">
+        <div class="cert-flip-inner">
+          <div class="cert-face cert-front">
+            <h3 class="cert-title">Building The Future: Real World Tour for IT and CS Students Topic: Freelancing in Tech</h3>
+            <p class="cert-org">2025</p>
+            <span class="cert-hint">hover to flip ✦</span>
+          </div>
+          <div class="cert-face cert-back">
+            <img src="elle cert/Freelancing in Tech.jpg" alt="[CERTIFICATION NAME 4] certificate" class="cert-image" onerror="this.style.display='none'; this.parentElement.classList.add('cert-img-empty');">
+            <span class="cert-date">2025</span>
+            <span class="cert-cta">View Certificate ↗</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="elle cert/DevOps and CICD.jpg" target="_blank" rel="noopener" class="cert-flip reveal">
+        <div class="cert-flip-inner">
+          <div class="cert-face cert-front">
+            <h3 class="cert-title">Building The Future: Real World Tour for IT and CS Students Topic: DevOps and CI/CD</h3>
+            <p class="cert-org">2025</p>
+            <span class="cert-hint">hover to flip ✦</span>
+          </div>
+          <div class="cert-face cert-back">
+            <img src="elle cert/DevOps and CICD.jpg" alt="[CERTIFICATION NAME 5] certificate" class="cert-image" onerror="this.style.display='none'; this.parentElement.classList.add('cert-img-empty');">
+            <span class="cert-date">2025</span>
+            <span class="cert-cta">View Certificate ↗</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="elle cert/Time Management.jpg" target="_blank" rel="noopener" class="cert-flip reveal">
+        <div class="cert-flip-inner">
+          <div class="cert-face cert-front">
+            <h3 class="cert-title">Planning for Progress: Time Management for College Success</h3>
+            <p class="cert-org">2025</p>
+            <span class="cert-hint">hover to flip ✦</span>
+          </div>
+          <div class="cert-face cert-back">
+            <img src="elle cert/Time Management.jpg" alt="[CERTIFICATION NAME 6] certificate" class="cert-image" onerror="this.style.display='none'; this.parentElement.classList.add('cert-img-empty');">
+            <span class="cert-date">2025</span>
+            <span class="cert-cta">View Certificate ↗</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="elle cert/Machine Learning.jpg" target="_blank" rel="noopener" class="cert-flip reveal">
+        <div class="cert-flip-inner">
+          <div class="cert-face cert-front">
+            <h3 class="cert-title">BootUp - Computer Science Skills Intensive | Topic: Machine Learning</h3>
+            <p class="cert-org">2024</p>
+            <span class="cert-hint">hover to flip ✦</span>
+          </div>
+          <div class="cert-face cert-back">
+            <img src="elle cert/Machine Learning.jpg" alt="[CERTIFICATION NAME 7] certificate" class="cert-image" onerror="this.style.display='none'; this.parentElement.classList.add('cert-img-empty');">
+            <span class="cert-date">2024</span>
+            <span class="cert-cta">View Certificate ↗</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="elle cert/PHP.jpg" target="_blank" rel="noopener" class="cert-flip reveal">
+        <div class="cert-flip-inner">
+          <div class="cert-face cert-front">
+            <h3 class="cert-title">BootUp - Computer Science Skills Intensive | Topic: PHP</h3>
+            <p class="cert-org">2024</p>
+            <span class="cert-hint">hover to flip ✦</span>
+          </div>
+          <div class="cert-face cert-back">
+            <img src="elle cert/PHP.jpg" alt="[CERTIFICATION NAME 8] certificate" class="cert-image" onerror="this.style.display='none'; this.parentElement.classList.add('cert-img-empty');">
+            <span class="cert-date">2024</span>
+            <span class="cert-cta">View Certificate ↗</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="elle cert/Power BI.jpg" target="_blank" rel="noopener" class="cert-flip reveal">
+        <div class="cert-flip-inner">
+          <div class="cert-face cert-front">
+            <h3 class="cert-title">BootUp - Computer Science Skills Intensive | Topic: Power Bl</h3>
+            <p class="cert-org">2024</p>
+            <span class="cert-hint">hover to flip ✦</span>
+          </div>
+          <div class="cert-face cert-back">
+            <img src="elle cert/Power BI.jpg" alt="[CERTIFICATION NAME 9] certificate" class="cert-image" onerror="this.style.display='none'; this.parentElement.classList.add('cert-img-empty');">
+            <span class="cert-date">2024</span>
+            <span class="cert-cta">View Certificate ↗</span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BEYOND THE SCREEN / SOCIAL ============ -->
+<section id="beyond" class="section social-section">
+  <div class="section-inner">
+    <p class="section-eyebrow">find me elsewhere</p>
+    <h2 class="section-title">Beyond the Screen</h2>
+
+    <div class="social-grid">
+      <a href="https://www.facebook.com/whoizbxllee/" target="_blank" rel="noopener" class="social-card">
+        <span class="social-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.15 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22c4.78-.79 8.44-4.94 8.44-9.94Z"/></svg>
+        </span>
+        <span class="social-label">Facebook</span>
+      </a>
+
+      <a href="https://www.instagram.com/_zxellee/" target="_blank" rel="noopener" class="social-card">
+        <span class="social-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.42-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16Zm0 1.62c-3.15 0-3.5.01-4.73.07-.96.04-1.48.2-1.83.34-.46.18-.78.39-1.13.73-.34.34-.56.67-.73 1.13-.14.35-.3.87-.34 1.83-.06 1.23-.07 1.58-.07 4.73s.01 3.5.07 4.73c.04.96.2 1.48.34 1.83.18.46.39.78.73 1.13.34.34.67.56 1.13.73.35.14.87.3 1.83.34 1.23.06 1.58.07 4.73.07s3.5-.01 4.73-.07c.96-.04 1.48-.2 1.83-.34.46-.18.78-.39 1.13-.73.34-.34.56-.67.73-1.13.14-.35.3-.87.34-1.83.06-1.23.07-1.58.07-4.73s-.01-3.5-.07-4.73c-.04-.96-.2-1.48-.34-1.83-.18-.46-.39-.78-.73-1.13a3.04 3.04 0 0 0-1.13-.73c-.35-.14-.87-.3-1.83-.34-1.23-.06-1.58-.07-4.73-.07Zm0 4.14a5.08 5.08 0 1 1 0 10.16 5.08 5.08 0 0 1 0-10.16Zm0 1.62a3.46 3.46 0 1 0 0 6.92 3.46 3.46 0 0 0 0-6.92Zm5.28-1.8a1.19 1.19 0 1 1-2.38 0 1.19 1.19 0 0 1 2.38 0Z"/></svg>
+        </span>
+        <span class="social-label">Instagram</span>
+      </a>
+
+      <a href="https://www.tiktok.com/@yxsbllzx" target="_blank" rel="noopener" class="social-card">
+        <span class="social-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 2h-3.2v13.1a2.9 2.9 0 1 1-2.05-2.77V9.02a6.13 6.13 0 1 0 5.25 6.07V8.3a7.9 7.9 0 0 0 4.6 1.47V6.55A4.6 4.6 0 0 1 16.6 2Z"/></svg>
+        </span>
+        <span class="social-label">TikTok</span>
+      </a>
+
+      <a href="https://open.spotify.com/user/31arnwih2ihaef5rq53lkeqqmxza?si=8ec204df471149bc" target="_blank" rel="noopener" class="social-card">
+        <span class="social-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.59 14.42a.62.62 0 0 1-.86.21c-2.35-1.44-5.3-1.76-8.79-.96a.62.62 0 1 1-.28-1.21c3.82-.88 7.1-.5 9.72 1.1.3.18.4.57.21.86Zm1.22-2.72a.78.78 0 0 1-1.07.26c-2.69-1.65-6.79-2.13-9.98-1.17a.78.78 0 1 1-.45-1.49c3.64-1.1 8.16-.57 11.24 1.32.37.23.49.72.26 1.08Zm.1-2.84C14.98 8.9 9.4 8.71 6.15 9.71a.93.93 0 1 1-.55-1.78c3.73-1.13 9.9-.91 13.8 1.4a.93.93 0 1 1-.95 1.6Z"/></svg>
+        </span>
+        <span class="social-label">Spotify</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LET'S CONNECT ============ -->
+<section id="connect" class="section connect-section">
+  <div class="section-inner connect-inner reveal">
+    <span class="connect-deco" aria-hidden="true">🎀</span>
+    <h2 class="connect-title">Let's Connect</h2>
+    <p class="connect-message">Do you want to connect, have a question, or have an opportunity? I would be delighted to hear from you. Please get in touch at any time.</p>
+    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=maykaisabelledln@gmail.com" target="_blank" rel="noopener" class="btn btn-primary btn-large">Let's Talk ♡</a>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <p>© <span id="year">2026</span> Maica Isabelle D. Dejumo <span class="footer-deco">୨୧</span></p>
+</footer>
+
+<!-- ============ ELLE'S AI CHAT (Chatbase) ============ -->
+<div class="ai-chat-container">
+
+  <button
+    class="ai-chat-button"
+    id="aiChatButton"
+    type="button"
+    aria-label="Open Elle's AI assistant"
+    aria-expanded="false"
+    aria-controls="aiChatWindow"
+  >
+    <svg class="ai-icon ai-icon-chat" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 3.5h14A2.5 2.5 0 0 1 21.5 6v9a2.5 2.5 0 0 1-2.5 2.5h-8.5L6 21v-3.5H5A2.5 2.5 0 0 1 2.5 15V6A2.5 2.5 0 0 1 5 3.5Z" fill="currentColor"/>
+      <path class="ai-spark" d="M12 6.2l1.2 3.1 3.1 1.2-3.1 1.2L12 14.8l-1.2-3.1-3.1-1.2 3.1-1.2Z"/>
+    </svg>
+    <svg class="ai-icon ai-icon-close" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5.5 9l6.5 6.5L18.5 9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </button>
+
+  <div class="ai-chat-window" id="aiChatWindow" role="dialog" aria-label="Elle's AI assistant" aria-hidden="true">
+    <div class="ai-chat-header">
+      <div class="ai-chat-heading">
+        <span class="ai-chat-title">ask yxsa ✦</span>
+        <span class="ai-chat-subtitle">ask me anything about elle's portfolio</span>
+      </div>
+      <button class="ai-chat-close" id="aiChatClose" type="button" aria-label="Close AI assistant">×</button>
+    </div>
+
+    <div class="ai-chat-content">
+      <iframe
+        src="https://www.chatbase.co/chatbot-iframe/BqIBfM-ix_T4n4dgczVK7"
+        width="100%"
+        height="100%"
+        frameborder="0"
+        referrerpolicy="no-referrer-when-downgrade"
+        allow="microphone"
+        title="Elle's AI Assistant"
+      ></iframe>
+    </div>
+  </div>
+
 </div>
+
+<script src="script.js"></script>
+<script>
+/* Elle's AI chat: open/close only. The Chatbase iframe stays loaded so the conversation isn't reset. */
+(function(){
+  var btn = document.getElementById('aiChatButton');
+  var win = document.getElementById('aiChatWindow');
+  var closeBtn = document.getElementById('aiChatClose');
+  if (!btn || !win) return;
+
+  function setOpen(open){
+    win.classList.toggle('active', open);
+    btn.classList.toggle('active', open);
+    btn.setAttribute('aria-expanded', String(open));
+    win.setAttribute('aria-hidden', String(!open));
+    btn.setAttribute('aria-label', open ? "Close Elle's AI assistant" : "Open Elle's AI assistant");
+  }
+
+  btn.addEventListener('click', function(){ setOpen(!win.classList.contains('active')); });
+  if (closeBtn) closeBtn.addEventListener('click', function(){ setOpen(false); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && win.classList.contains('active')) setOpen(false);
+  });
+})();
+</script>
+</body>
+</html>
