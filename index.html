@@ -605,6 +605,70 @@
   <p>© <span id="year">2026</span> Maica Isabelle D. Dejumo <span class="footer-deco">୨୧</span></p>
 </footer>
 
+<!-- ============ YXSA CHAT WIDGET ============ -->
+<button type="button" class="chat-fab" id="chatToggle" aria-label="Chat with Yxsa" aria-expanded="false" aria-controls="chatPanel">
+  <span class="chat-fab-icon" aria-hidden="true">🎀</span>
+  <span class="chat-fab-label" id="chatToggleLabel">Ask Yxsa</span>
+</button>
+
+<aside class="chat-panel" id="chatPanel" aria-hidden="true" aria-label="Yxsa, Elle's AI assistant">
+  <div class="chat-panel-head">
+    <div class="chat-panel-title">
+      <span class="chat-panel-name">Yxsa <span aria-hidden="true">♡</span></span>
+      <span class="chat-panel-sub">Elle's AI assistant</span>
+    </div>
+    <button type="button" class="chat-panel-close" id="chatClose" aria-label="Close chat">✕</button>
+  </div>
+  <div class="chat-panel-body">
+    <iframe
+      id="chatFrame"
+      title="Chat with Yxsa, Elle's AI assistant"
+      data-src="https://www.chatbase.co/chatbot-iframe/BqIBfM-ix_T4n4dgczVK7"
+      width="100%"
+      height="100%"
+      frameborder="0"
+      referrerpolicy="no-referrer-when-downgrade"
+      allow="microphone"
+    ></iframe>
+  </div>
+</aside>
+
 <script src="script.js"></script>
+<script>
+/* Yxsa chat widget: the Chatbase iframe only loads the first time it's opened */
+(function(){
+  var fab = document.getElementById('chatToggle');
+  var label = document.getElementById('chatToggleLabel');
+  var panel = document.getElementById('chatPanel');
+  var closeBtn = document.getElementById('chatClose');
+  var frame = document.getElementById('chatFrame');
+  if (!fab || !panel || !frame) return;
+  var loaded = false;
+
+  function openChat(){
+    if (!loaded) { frame.src = frame.getAttribute('data-src'); loaded = true; }
+    panel.classList.add('open');
+    panel.setAttribute('aria-hidden', 'false');
+    fab.setAttribute('aria-expanded', 'true');
+    fab.classList.add('is-open');
+    label.textContent = 'Close';
+  }
+  function closeChat(){
+    panel.classList.remove('open');
+    panel.setAttribute('aria-hidden', 'true');
+    fab.setAttribute('aria-expanded', 'false');
+    fab.classList.remove('is-open');
+    label.textContent = 'Ask Yxsa';
+  }
+
+  fab.addEventListener('click', function(){
+    if (panel.classList.contains('open')) closeChat(); else openChat();
+  });
+  closeBtn.addEventListener('click', closeChat);
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && panel.classList.contains('open')) closeChat();
+  });
+})();
+</script>
 </body>
 </html>
